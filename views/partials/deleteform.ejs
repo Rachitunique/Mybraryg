@@ -1,0 +1,7 @@
+<!--the links yield a get method but we have to use a delete method thats why we used form-->
+<!--when our server get this request and see that it is a post request but its going to see this _method and since we define that
+in our method override it will say we instead want to do a delete request instead of a post request and that will end up calling our router
+folder delete method -->
+<form method="post" action="<%= url %>?_method=DELETE">
+  <button type="submit">Delete</button>
+</form>

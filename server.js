@@ -7,6 +7,7 @@ const express = require('express')
 const app = express()
 const expressLayouts = require('express-ejs-layouts')
 const bodyParser = require('body-parser')
+const methodOverride = require('method-override')
 //import the router into our server so it knows our request, here the path is relative and ./ means relative to where we are
 const indexRouter = require('./routes/index')
 const authorRouter = require('./routes/authors')
@@ -18,6 +19,7 @@ app.set('views', __dirname + '/views')
 //every single file is going to be put inside the layout file so we don't have to duplicate all the brgining html and ending html of our projects such as the header and the footer
 app.set('layout', 'layouts/layout')
 app.use(expressLayouts)
+app.use(methodOverride('_method'))
 //public folder contains all the javascript css and images
 app.use(express.static('public'))
 app.use(bodyParser.urlencoded({ limit: '10mb', extended: false }))
