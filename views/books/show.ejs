@@ -1,0 +1,12 @@
+<h2><%= book.title %></h2>
+<img width="100" height="150" src="<%= book.coverImagePath %>">
+<!--the reason we can access the name of the author as we used popilate in book.js route which preloads all of the author information before actually returns the book
+otherwise .author would just have been an id but now it is an object-->
+<div>Author: <%= book.author.name %></div>
+<!--if we haven't used .toDateString than we have got time along with date-->
+<div>Publish Date: <%= book.publishDate.toDateString() %></div>
+<div>Page Count: <%= book.pageCount %></div>
+<div>Description: <%= book.description %></div>
+<a href="/books/<%= book.id %>/edit">Edit</a>
+<%- include('../partials/deleteForm', { url: `/books/${book.id}` }) %>
+<a href="/authors/<%= book.author.id %>">View Author</a>

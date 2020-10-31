@@ -88,6 +88,77 @@ router.post('/', async (req, res) => {
     renderNewPage(res, book, true)
   }
 })
+
+//show route for our new books
+router.get('/:id', async(req, res) => {
+  try{
+    //Book.findById is going to get us the book but is only going to have an ID for the author it's not going to have name of the author or
+    //any of the other author information so in order to get that information we need to use a function populate and in brackets the collection we want to populate
+    //so this will populate author variable inside of our Book object with all of the author information which in this case is author name, .exec to make that function execute
+    const book = await Book.findById(req.params.id).populate('author').exec()
+    res.render('books/show',{ book: book })
+  }catch{
+    res.redirect('/')
+  }
+})
+//edit book route
+router.get('/:id/edit', async (req, res) => {
+  try {
+    const book = await Book.findById(req.params.id)
+    renderEditPage(res, book)
+  } catch {
+    res.redirect('/')
+  }
+})
+
+// update Book Route copied from create book route
+router.put('/:id', async (req, res) => {
+  let book
+
+  try {
+    book = await Book.findById(req.params.id)
+    book.title = req.body.title
+    book.author = req.body.author
+    book.publishDate = new Date(req.body.publishDate)
+    book.pageCount = req.body.pageCount
+    book.description = req.body.description
+    //check to save if our cover exists
+    if (req.body.cover != null && req.body.cover !== '') {
+      saveCover(book, req.body.cover)
+    }
+    await book.save()
+    res.redirect(`/books/${book.id}`)
+  } catch {
+    //if we had a problem in saving the cover but we sucessfully get the book
+    if (book != null) {
+      //error is true as we are actually having it
+      renderEditPage(res, book, true)
+    } else {
+      redirect('/')
+    }
+  }
+})
+
+// Delete Book Page
+router.delete('/:id', async (req, res) => {
+  let book
+  try {
+    book = await Book.findById(req.params.id)
+    await book.remove()
+    res.redirect('/books')
+  } catch {
+    //if we do have a book but are not able to remove it than we will render the show page of the book
+    if (book != null) {
+      res.render('books/show', {
+        book: book,
+        errorMessage: 'Could not remove book'
+      })
+    } else {
+      res.redirect('/')
+    }
+  }
+})
+
 //as we no longer storing our image on server
 //function removeBookCover(fileName) {
 //  fs.unlink(path.join(uploadPath, fileName), err => {
@@ -96,6 +167,14 @@ router.post('/', async (req, res) => {
 //}
 
 async function renderNewPage(res, book, hasError = false) {
+  renderFormPage(res, book, 'new', hasError)
+}
+
+async function renderEditPage(res, book, hasError = false) {
+  renderFormPage(res, book, 'edit', hasError)
+}
+
+async function renderFormPage(res, book, form, hasError = false) {
   try {
     const authors = await Author.find({})
     //params is used for dinamically creating an error
@@ -104,12 +183,19 @@ async function renderNewPage(res, book, hasError = false) {
       authors: authors,
       book: book
     }
-    if (hasError) params.errorMessage = 'Error Creating Book'
-    res.render('books/new', params)
+    if (hasError) {
+      if (form === 'edit') {
+        params.errorMessage = 'Error Updating Book'
+      } else {
+        params.errorMessage = 'Error Creating Book'
+      }
+    }
+    res.render(`books/${form}`, params)
   } catch {
     res.redirect('/books')
   }
 }
+
 //inside of it we are going to check that our cover is a valid cover and if it is we want to save it in book.cover
 function saveCover(book, coverEncoded){
   if(coverEncoded == null) return
